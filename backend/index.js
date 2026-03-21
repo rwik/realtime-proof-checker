@@ -31,28 +31,37 @@ io.on("connection", (socket) => {
     currentRoom = roomId;
     currentUser = userName;
 
-    socket.join(roomId);
-
     if (!rooms.has(roomId)) {
       rooms.set(roomId, new Set());
     }
 
-    rooms.get(roomId).add(userName);
+    // === MAX 3 MEMBERS ENFORCEMENT ===
+    if (rooms.get(roomId).size >= 3) {
+      socket.emit("roomFull", "Maximum 3 members allowed in a room.");
+      currentRoom = null;
+      currentUser = null;
+      return;
+    }
 
-    io.to(roomId).emit("userJoined", Array.from(rooms.get(currentRoom)));
+    socket.join(roomId);
+    rooms.get(roomId).add(userName);
+    io.to(roomId).emit("userJoined", Array.from(rooms.get(roomId)));
   });
 
   socket.on("codeChange", ({ roomId, code }) => {
     socket.to(roomId).emit("codeUpdate", code);
   });
 
+  // === NEW: CHAT MESSAGE ===
+  socket.on("sendMessage", ({ roomId, userName, message }) => {
+    io.to(roomId).emit("receiveMessage", { userName, message });
+  });
+
   socket.on("leaveRoom", () => {
     if (currentRoom && currentUser) {
       rooms.get(currentRoom).delete(currentUser);
       io.to(currentRoom).emit("userJoined", Array.from(rooms.get(currentRoom)));
-
       socket.leave(currentRoom);
-
       currentRoom = null;
       currentUser = null;
     }
