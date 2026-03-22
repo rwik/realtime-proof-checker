@@ -16,7 +16,7 @@ Currently supports **exactly 3 concurrent users** in a shared session with live 
 
 ## Screenshot 
 
-<image-card alt="Preview" src="Demo.png" ></image-card>
+![Realtime Proof Checker Demo](./Demo.png)
 
 ## 🚀 Demo
 
